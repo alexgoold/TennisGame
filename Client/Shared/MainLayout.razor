@@ -1,0 +1,68 @@
+﻿@inherits LayoutComponentBase
+@using TennisGame.Shared
+
+<h3>TennisScore</h3>
+
+<div class="m-4">
+	<InputText @bind-Value="ScoreBoard.Player1.Name" />
+	<button disabled="@IsDisabled" @onclick="()=>ScorePoint(ScoreBoard.Player1)" class="btn btn-primary m-2">Point for Player 1</button>
+	<InputText @bind-Value="ScoreBoard.Player2.Name" />
+	<button disabled="@IsDisabled" @onclick="()=>ScorePoint(ScoreBoard.Player2)" class="btn btn-primary m-2">Point for Player 2</button>
+</div>
+
+<div class="m-4">
+	<h4>Score: @ScoreBoard.ScoreAsString</h4>
+</div>
+
+<table class="table"> 
+	<thead>
+		<tr>
+			<th scope="col">@ScoreBoard.Player1.Name</th>
+			<th scope="col">@ScoreBoard.Player2.Name</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th>Games won: @Player1GamesWon</th>
+			<th>Games won: @Player2GamesWon</th>
+		</tr>
+	</tbody>
+</table>
+<button @onclick="NewGame" class="btn btn-primary m-2">New Game></button>
+
+@code {
+	public ScoreBoard ScoreBoard = new(new TennisPlayer(), new TennisPlayer());
+	public int Player1GamesWon { get; set; }
+	public int Player2GamesWon { get; set; }
+	public bool IsDisabled = false;
+
+	private void ScorePoint(TennisPlayer player)
+	{
+		ScoreBoard.AddPointToPlayer(player);
+		CheckForWinner();
+	}
+	private void CheckForWinner()
+	{
+		if (ScoreBoard.ScoreAsString.Contains("wins"))
+		{
+			IsDisabled = true;
+			if (ScoreBoard.ScoreAsString.Contains(ScoreBoard.Player1.Name))
+			{
+				Player1GamesWon++;
+			}
+			else
+			{
+				Player2GamesWon++;
+			}
+		}
+
+	}
+	private void NewGame()
+	{
+		ScoreBoard.ResetRound();
+		IsDisabled = false;
+	}
+
+
+}
+
