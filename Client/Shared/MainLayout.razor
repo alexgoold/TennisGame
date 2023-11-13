@@ -14,7 +14,7 @@
 	<h4>Score: @ScoreBoard.ScoreAsString</h4>
 </div>
 
-<table class="table"> 
+<table class="table">
 	<thead>
 		<tr>
 			<th scope="col">@ScoreBoard.Player1.Name</th>
@@ -22,49 +22,65 @@
 		</tr>
 	</thead>
 	<tbody>
-	<tr>
-		<th>Games won: @Player1GamesWon</th>
-		<th>Games won: @Player2GamesWon</th>
-	</tr>
-	<tr>
-		<th>Sets won: </th>
-		<th>Sets won: </th>
-	</tr>
-	<tr>
-		<th>Matches won: </th>
-		<th>Matches won: </th>
-	</tr>
+		<tr>
+			<th>Games won: @GamesWon.Count(tp => tp.Name == ScoreBoard.Player1.Name)</th>
+			<th>Games won: @GamesWon.Count(tp => tp.Name == ScoreBoard.Player2.Name)</th>
+		</tr>
+		<tr>
+			<th>Sets won: @SetsWon.Count(tp=> tp.Name == ScoreBoard.Player1.Name)</th>
+			<th>Sets won: @SetsWon.Count(tp=> tp.Name == ScoreBoard.Player2.Name)</th>
+		</tr>
+		<tr>
+			<th>Matches won: </th>
+			<th>Matches won: </th>
+		</tr>
 	</tbody>
 </table>
-<button @onclick="NewGame" class="btn btn-primary m-2">New Game></button>
+<button @onclick="NewGame" class="btn btn-primary m-2">New Game</button>
 
 @code {
 	public ScoreBoard ScoreBoard = new(new TennisPlayer(), new TennisPlayer());
-	public int Player1GamesWon { get; set; }
-	public int Player2GamesWon { get; set; }
+	public List<TennisPlayer> GamesWon { get; set; } = new();
+	public List<TennisPlayer> SetsWon { get; set; } = new();
+	public List<TennisPlayer> MatchesWon { get; set; } = new();
+
 	public bool IsDisabled = false;
 
 	private void ScorePoint(TennisPlayer player)
 	{
 		ScoreBoard.AddPointToPlayer(player);
-		CheckForWinner();
+		CheckForGameWinner();
 	}
-	private void CheckForWinner()
+	private void CheckForGameWinner()
 	{
 		if (ScoreBoard.ScoreAsString.Contains("wins"))
 		{
 			IsDisabled = true;
-			if (ScoreBoard.ScoreAsString.Contains(ScoreBoard.Player1.Name))
-			{
-				Player1GamesWon++;
-			}
-			else
-			{
-				Player2GamesWon++;
-			}
+			GamesWon.Add(ScoreBoard.ScoreAsString.Contains(ScoreBoard.Player1.Name)
+				? ScoreBoard.Player1 
+				: ScoreBoard.Player2);
 		}
+		CheckForSetWinner();
 
 	}
+
+	private void CheckForSetWinner()
+	{
+		var player1Wins = GamesWon.Count(tp => tp.Name == ScoreBoard.Player1.Name);
+		var player2Wins = GamesWon.Count(tp => tp.Name == ScoreBoard.Player2.Name);
+
+		if (player1Wins >= 6 && player2Wins <= player1Wins-2  )
+		{
+			SetsWon.Add(ScoreBoard.Player1);
+			GamesWon.Clear();
+		}
+		else if (player2Wins >= 6 && player1Wins <= player2Wins-2)
+		{
+			SetsWon.Add(ScoreBoard.Player2);
+			GamesWon.Clear();
+		}
+	}
+
 	private void NewGame()
 	{
 		ScoreBoard.ResetRound();
